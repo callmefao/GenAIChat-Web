@@ -1,0 +1,25 @@
+# Bỏ qua file database SQLite
+db.sqlite3
+
+# Bỏ qua file môi trường
+chat_app/.env
+
+# Bỏ qua file cache, migration, và file tạm Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Bỏ qua các thư mục và file của editor
+.vscode/
+.idea/
+
+# Bỏ qua thư viện cài đặt qua pip
+venv/
+.env/
+*.env
+
+# Bỏ qua file log và tạm
+*.log
+*.tmp

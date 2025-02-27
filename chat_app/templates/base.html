@@ -1,0 +1,41 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot App</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="toolbar">
+            <img src="/static/images/fpt-logo.avif" alt="Logo" class="logo">
+            <div class="auth-buttons">
+                    {% comment %} <button onclick="window.location.href='/login'">Đăng nhập</button> {% endcomment %}
+                <button onclick="window.location.href='/logout'">Log Out</button>
+            </div>
+        </div>
+    </header>
+    <main class="main-layout">
+        <div class="model-selection">
+            <h2>Select a Model to Start Chatting</h2>
+            <form method="post" action="{% url 'select_model' %}">
+                {% csrf_token %}
+                <select name="model">
+                    {% for model in models %}
+                        <option value="{{ model.name }}">{{ model.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Start Chat</button>
+            </form>
+        </div>
+        <div class="model-warning">
+            <h3>Important Notice</h3>
+            <p>You can only use Gemini models with the code "flash", "gemini-1.5" and the model "gemini-exp-1206".</p>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Chatbot App</p>
+    </footer>
+</body>
+</html>

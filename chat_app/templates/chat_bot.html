@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Demo</title>
+    <link rel="stylesheet" href="/static/css/chat_bot.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="toolbar">
+            <img src="/static/images/fpt-logo.avif" alt="Logo" class="logo">
+            <div class="auth-buttons">
+                    {% comment %} <button onclick="window.location.href='/login'">Đăng nhập</button> {% endcomment %}
+                <button onclick="window.location.href='/logout'">Log Out</button>
+            </div>
+        </div>
+    </header>
+    <h1>ChatGPT Demo (Model: {{ model_name }})</h1>
+    <div id="chat-container">
+        <div id="chat-messages">
+            {% for chat in chats %}
+                <div class="message user-message">
+                    <p><strong>You:</strong> {{ chat.text_input }}</p>
+                </div>
+                <div class="message bot-message">
+                    <p><strong>AI:</strong> {{ chat.gemini_output }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function getCSRFToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+        }
+
+        function sendMessage() {
+            var userInput = $('#user-input').val();
+            if (userInput.trim() !== '') {
+                $('#chat-messages').append(`
+                    <div class="message user-message">
+                        <p><strong>You:</strong> ${userInput}</p>
+                    </div>
+                `);
+                $('#user-input').val('');
+
+                $.ajax({
+                    url: '{% url "ask_question" model_name=model_name %}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    data: {
+                        'text': userInput
+                    },
+                    success: function(response) {
+                        $('#chat-messages').append(`
+                            <div class="message bot-message">
+                                <p><strong>AI:</strong> ${response.data.text}</p>
+                            </div>
+                        `);
+                    }
+                });
+            }
+        }
+
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13) {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
