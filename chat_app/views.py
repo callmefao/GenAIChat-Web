@@ -9,8 +9,8 @@ import os
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
-if api_key:
-    print("______________________")# Configure your API key
+if not api_key:
+    raise ValueError("API_KEY not found, please check .env file")
 genai.configure(api_key=api_key)
 
 def home(request):
