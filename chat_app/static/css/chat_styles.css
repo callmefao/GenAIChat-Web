@@ -1,0 +1,151 @@
+/* Chat Styles CSS */
+
+/* Typing indicator animation */
+.typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    height: 17px;
+}
+
+.typing-indicator span {
+    height: 6px;
+    width: 6px;
+    background: #6b7280;
+    display: block;
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: typing 1s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: 0ms; }
+.typing-indicator span:nth-child(2) { animation-delay: 160ms; }
+.typing-indicator span:nth-child(3) { animation-delay: 320ms; }
+
+@keyframes typing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Chat message styling */
+.user-message, .ai-message {
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.user-message {
+    background-color: #e0e7ff;
+    color: #312e81;
+}
+
+.ai-message {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+/* Enhanced custom scrollbar for chat */
+#chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Better spacing for messages */
+#chat-messages > div:not(:last-child) {
+    margin-bottom: 16px;
+}
+
+/* Fixed height container with shadow indication for scrollable content */
+#chat-messages {
+    position: relative;
+}
+
+#chat-messages::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(transparent, rgba(241, 245, 249, 0.7));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+#chat-messages.can-scroll::after {
+    opacity: 1;
+}
+
+/* Temperature slider styling */
+input[type="range"] {
+    -webkit-appearance: none;
+    height: 5px;
+    border-radius: 5px;
+    background: #e5e7eb;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #4f46e5;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #4f46e5;
+    cursor: pointer;
+}
+
+/* Message highlight effects */
+.user-message:hover, .ai-message:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Chat container responsive adjustments */
+@media (max-width: 640px) {
+    .flex-col.h-\[600px\] {
+        height: 80vh;
+    }
+    
+    #chat-messages {
+        height: calc(80vh - 150px);
+    }
+    
+    .user-message, .ai-message {
+        max-width: 85%;
+    }
+}
+
+/* Save button effects */
+#save-chat:hover, #clear-chat:hover {
+    transition: all 0.2s ease;
+}
+
+#save-chat:active, #clear-chat:active {
+    transform: scale(0.95);
+}
+
+/* Input field focus enhancement */
+#user-input:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}

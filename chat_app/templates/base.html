@@ -1,41 +1,164 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot App</title>
+    <title>AI Chat Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/toolbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<body>
-    <header>
-        <div class="toolbar">
-            <img src="/static/images/fpt-logo.avif" alt="Logo" class="logo">
-            <div class="auth-buttons">
-                    {% comment %} <button onclick="window.location.href='/login'">Đăng nhập</button> {% endcomment %}
-                <button onclick="window.location.href='/logout'">Log Out</button>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    <!-- Include the toolbar component -->
+    {% include 'includes/toolbar.html' %}
+
+    <!-- Messages with animation -->
+    {% if messages %}
+    <div class="container mx-auto px-4 py-3">
+        {% for message in messages %}
+        <div class="p-4 mb-3 text-sm rounded-lg flex items-center shadow-sm animate-fadeIn {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle mr-2 text-lg"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-circle mr-2 text-lg"></i>
+            {% else %}
+                <i class="fas fa-info-circle mr-2 text-lg"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content with card animation -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        {% block content %}
+        <div class="max-w-lg mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden card">
+            <div class="p-8">
+                <div class="flex justify-center mb-6">
+                    <div class="h-14 w-14 bg-indigo-100 rounded-full flex items-center justify-center mb-2">
+                        <i class="fas fa-robot text-2xl text-indigo-600"></i>
+                    </div>
+                </div>
+                <h2 class="text-xl font-medium text-center mb-6">Select a Model to Start Chatting</h2>
+                
+                <!-- Debug information - remove in production -->
+                {% if models %}
+                {% comment %} <p class="text-xs text-gray-500 mb-3 text-center">Available models: {{ modelslength }}</p> {% endcomment %}
+                {% else %}
+                <p class="text-xs text-gray-500 mb-3 text-center">No models available</p>
+                {% endif %}
+                
+                <form method="post" action="{% url 'select_model' %}" class="space-y-5">
+                    {% csrf_token %}
+                    <div class="w-full select-wrapper">
+                        <select name="model" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50">
+                            {% if models %}
+                                {% for model in models %}
+                                    <option value="{{ model.id|default:model.name }}">{{ model.display_name|default:model.name }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Default models if none are provided from backend -->
+                                <option value="gemini-pro">Gemini Pro</option>
+                                <option value="gemini-pro-vision">Gemini Pro Vision</option>
+                                <option value="gemini-flash">Gemini Flash</option>
+                                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                <option value="claude-3-haiku">Claude 3 Haiku</option>
+                                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                                <option value="claude-3-opus">Claude 3 Opus</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="gpt-4">GPT-4</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <!-- Model group selection (optional) -->
+                    <div class="flex flex-wrap gap-2 justify-center my-4">
+                        <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full model-filter" data-filter="gemini">Gemini</button>
+                        <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full model-filter" data-filter="claude">Claude</button>
+                        <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full model-filter" data-filter="gpt">OpenAI</button>
+                        <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full model-filter" data-filter="all">All Models</button>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-md shadow-sm transition-colors flex items-center gap-2 btn-primary">
+                            <i class="fas fa-comments"></i>
+                            <span>Start Chat</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="warning-box p-5 border-t">
+                <h3 class="text-amber-800 font-medium flex items-center gap-2 mb-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Important Notice</span>
+                </h3>
+                <p class="text-amber-700 text-sm">You can only use Gemini models with the code "flash", "gemini-1.5" and the model "gemini-exp-1206".</p>
             </div>
         </div>
-    </header>
-    <main class="main-layout">
-        <div class="model-selection">
-            <h2>Select a Model to Start Chatting</h2>
-            <form method="post" action="{% url 'select_model' %}">
-                {% csrf_token %}
-                <select name="model">
-                    {% for model in models %}
-                        <option value="{{ model.name }}">{{ model.name }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit">Start Chat</button>
-            </form>
-        </div>
-        <div class="model-warning">
-            <h3>Important Notice</h3>
-            <p>You can only use Gemini models with the code "flash", "gemini-1.5" and the model "gemini-exp-1206".</p>
-        </div>
+        {% endblock %}
     </main>
-    <footer>
-        <p>&copy; 2023 Chatbot App</p>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; {% now "Y" %} AI Chat Assistant | <i class="fas fa-code"></i> with <i class="fas fa-heart text-red-500"></i></p>
+        </div>
     </footer>
+
+    <style>
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    <script>
+    $(document).ready(function() {
+        // Handle scroll effect on header
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 50) {
+                $('header').addClass('scrolled');
+            } else {
+                $('header').removeClass('scrolled');
+            }
+        });
+        
+        // Filter models by group
+        $('.model-filter').click(function() {
+            const filter = $(this).data('filter');
+            const select = $('select[name="model"]');
+            
+            // Make all buttons inactive
+            $('.model-filter').removeClass('bg-indigo-100 text-indigo-700').addClass('bg-gray-100 text-gray-800');
+            // Make current button active
+            $(this).removeClass('bg-gray-100 text-gray-800').addClass('bg-indigo-100 text-indigo-700');
+            
+            // Show all options first
+            select.find('option').show();
+            
+            // Filter options if not "all"
+            if (filter !== 'all') {
+                select.find('option').each(function() {
+                    const value = $(this).val().toLowerCase();
+                    if (!value.includes(filter.toLowerCase())) {
+                        $(this).hide();
+                    }
+                });
+                
+                // Select first visible option
+                select.find('option:visible:first').prop('selected', true);
+            }
+        });
+    });
+    </script>
 </body>
 </html>

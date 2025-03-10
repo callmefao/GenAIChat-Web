@@ -1,82 +1,241 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatGPT Demo</title>
-    <link rel="stylesheet" href="/static/css/chat_bot.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-    <header>
-        <div class="toolbar">
-            <img src="/static/images/fpt-logo.avif" alt="Logo" class="logo">
-            <div class="auth-buttons">
-                    {% comment %} <button onclick="window.location.href='/login'">Đăng nhập</button> {% endcomment %}
-                <button onclick="window.location.href='/logout'">Log Out</button>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="flex flex-col h-[600px]">  <!-- Fixed height instead of viewport-based -->
+        <!-- Chat header with selected model info -->
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+            <div class="flex items-center gap-2">
+                <div class="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-robot text-indigo-600"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium">{{ model_name }}</h3>
+                    <p class="text-xs text-gray-500">AI Assistant</p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'select_model' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Change Model</span>
+                </a>
             </div>
         </div>
-    </header>
-    <h1>ChatGPT Demo (Model: {{ model_name }})</h1>
-    <div id="chat-container">
-        <div id="chat-messages">
-            {% for chat in chats %}
-                <div class="message user-message">
-                    <p><strong>You:</strong> {{ chat.text_input }}</p>
+        
+        <!-- Chat messages container with fixed height and scrolling -->
+        <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4 h-[450px]">
+            <!-- Welcome message -->
+            <div class="flex items-start gap-2 mb-4">
+                <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-robot text-indigo-600 text-sm"></i>
                 </div>
-                <div class="message bot-message">
-                    <p><strong>AI:</strong> {{ chat.gemini_output }}</p>
+                <div class="bg-gray-100 rounded-lg p-3 max-w-[80%] ai-message">
+                    <p>Hello! I'm {{ model_name }}. How can I help you today?</p>
                 </div>
-            {% endfor %}
+            </div>
+            
+            {% comment %} {% for chat in chats %}
+                <div class="flex items-start justify-end gap-2 mb-4">
+                    <div class="bg-indigo-100 rounded-lg p-3 max-w-[80%] user-message">
+                        <p>{{ chat.text_input }}</p>
+                    </div>
+                    <div class="flex-shrink-0 h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {{ user.username|slice:":1"|upper|default:"U" }}
+                    </div>
+                </div>
+                <div class="flex items-start gap-2 mb-4">
+                    <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot text-indigo-600 text-sm"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%] ai-message">
+                        <p>{{ chat.gemini_output }}</p>
+                    </div>
+                </div>
+            {% endfor %} {% endcomment %}  
         </div>
-        <div id="input-container">
-            <input type="text" id="user-input" placeholder="Type your message...">
-            <button onclick="sendMessage()">Send</button>
+        
+        <!-- Message input area -->
+        <div class="border-t border-gray-200 p-4 bg-white">
+            <div class="flex gap-2">
+                <div class="relative flex-grow">
+                    <input type="text" id="user-input" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                           placeholder="Type your message...">
+                </div>
+                <button type="button" onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md shadow-sm transition-colors flex-shrink-0 flex items-center justify-center">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function getCSRFToken() {
-            return document.cookie.split('; ')
-                .find(row => row.startsWith('csrftoken='))
-                ?.split('=')[1];
-        }
+<!-- Add chat options panel -->
+<div class="max-w-4xl mx-auto mt-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+            <button id="clear-chat" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
+                <i class="fas fa-trash-alt"></i>
+                <span>Clear Chat</span>
+            </button>
+            <button id="save-chat" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
+                <i class="fas fa-save"></i>
+                <span>Save Chat</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-2">
+            <label for="temperature" class="text-sm text-gray-600">Temperature:</label>
+            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7" class="w-24 accent-indigo-600">
+            <span id="temp-value" class="text-sm text-gray-600">0.7</span>
+        </div>
+    </div>
+</div>
 
-        function sendMessage() {
-            var userInput = $('#user-input').val();
-            if (userInput.trim() !== '') {
-                $('#chat-messages').append(`
-                    <div class="message user-message">
-                        <p><strong>You:</strong> ${userInput}</p>
-                    </div>
-                `);
-                $('#user-input').val('');
-
-                $.ajax({
-                    url: '{% url "ask_question" model_name=model_name %}',
-                    type: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCSRFToken()
-                    },
-                    data: {
-                        'text': userInput
-                    },
-                    success: function(response) {
-                        $('#chat-messages').append(`
-                            <div class="message bot-message">
-                                <p><strong>AI:</strong> ${response.data.text}</p>
-                            </div>
-                        `);
-                    }
-                });
-            }
-        }
-
-        $('#user-input').keypress(function(e) {
-            if (e.which == 13) {
-                sendMessage();
+<script>
+    // Auto-scroll to bottom of chat on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Temperature slider
+        const tempSlider = document.getElementById('temperature');
+        const tempValue = document.getElementById('temp-value');
+        tempSlider.addEventListener('input', function() {
+            tempValue.textContent = this.value;
+        });
+        
+        // Clear chat
+        document.getElementById('clear-chat').addEventListener('click', function() {
+            if (confirm("Are you sure you want to clear the chat history?")) {
+                const welcomeMessage = chatMessages.firstChild.cloneNode(true);
+                chatMessages.innerHTML = '';
+                chatMessages.appendChild(welcomeMessage);
             }
         });
-    </script>
-</body>
-</html>
+
+        // Check if scrollable to show gradient
+        function checkScroll() {
+            if (chatMessages.scrollHeight > chatMessages.clientHeight) {
+                chatMessages.classList.add('can-scroll');
+            } else {
+                chatMessages.classList.remove('can-scroll');
+            }
+        }
+
+        // Initial check
+        checkScroll();
+
+        // Add observer to update scroll indicator when content changes
+        const observer = new MutationObserver(checkScroll);
+        observer.observe(chatMessages, { childList: true, subtree: true });
+    });
+
+    function getCSRFToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    }
+
+    function sendMessage() {
+        var userInput = $('#user-input').val();
+        if (userInput.trim() !== '') {
+            // Add user message
+            $('#chat-messages').append(`
+                <div class="flex items-start justify-end gap-2 mb-4">
+                    <div class="bg-indigo-100 rounded-lg p-3 max-w-[80%] user-message">
+                        <p>${userInput}</p>
+                    </div>
+                    <div class="flex-shrink-0 h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {{ user.username|slice:":1"|upper|default:"U" }}
+                    </div>
+                </div>
+            `);
+
+            // Clear input field
+            $('#user-input').val('');
+
+            // Auto-scroll to bottom
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Add typing indicator
+            $('#chat-messages').append(`
+                <div class="flex items-start gap-2 mb-4" id="typing-indicator">
+                    <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot text-indigo-600 text-sm"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%] ai-message">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            `);
+
+            // Auto-scroll to show typing indicator
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Get temperature value
+            const temperature = document.getElementById('temperature').value;
+
+            // Send request to server
+            $.ajax({
+                url: '{% url "ask_question" model_name=model_name %}',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                },
+                data: {
+                    'text': userInput,
+                    'temperature': temperature
+                },
+                success: function(response) {
+                    // Remove typing indicator
+                    $('#typing-indicator').remove();
+
+                    // Add bot response
+                    $('#chat-messages').append(`
+                        <div class="flex items-start gap-2 mb-4">
+                            <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-robot text-indigo-600 text-sm"></i>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg p-3 max-w-[80%] ai-message">
+                                <p>${response.data.text}</p>
+                            </div>
+                        </div>
+                    `);
+
+                    // Auto-scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                },
+                error: function() {
+                    // Remove typing indicator
+                    $('#typing-indicator').remove();
+
+                    // Show error message
+                    $('#chat-messages').append(`
+                        <div class="flex items-start gap-2 mb-4">
+                            <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-robot text-indigo-600 text-sm"></i>
+                            </div>
+                            <div class="bg-red-100 text-red-800 rounded-lg p-3 max-w-[80%] ai-message">
+                                <p>Sorry, there was an error processing your request. Please try again.</p>
+                            </div>
+                        </div>
+                    `);
+
+                    // Auto-scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }); 
+        }
+    }
+
+    // Allow pressing Enter to send message
+    document.getElementById('user-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="/static/css/chat_styles.css">
+{% endblock %}

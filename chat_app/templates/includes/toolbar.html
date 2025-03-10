@@ -1,0 +1,32 @@
+<!-- Toolbar component for navigation -->
+<header class="bg-gradient-to-r from-indigo-600 to-indigo-800 shadow-md sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="/static/images/fpt-logo.avif" alt="Logo" class="logo h-8 w-auto bg-white p-1 rounded">
+            <span class="font-bold text-xl text-white">AI Chat Assistant</span>
+        </div>
+        <div class="flex items-center gap-4">
+            {% if user.is_authenticated %}
+                <div class="hidden md:flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                    <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center text-indigo-800 font-bold shadow-sm user-avatar">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <span class="text-sm text-white font-medium">{{ user.username }}</span>
+                </div>
+                <a href="#" class="flex items-center gap-2 text-sm text-white hover:bg-indigo-700 px-3 py-2 rounded transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden md:inline">Logout</span>
+                </a>
+            {% else %}
+                <a href="#" class="flex items-center gap-2 text-sm text-white hover:bg-indigo-700 px-3 py-2 rounded transition-colors">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Log In</span>
+                </a>
+                <a href="{% url 'register' %}" class="flex items-center gap-2 text-sm bg-white text-indigo-700 hover:bg-gray-100 px-4 py-2 rounded-md transition-colors shadow-sm">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</header>

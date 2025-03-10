@@ -12,8 +12,9 @@ A Django-powered web application that enables real-time chat with a Generative A
 
 ## Demo
 
-### Chat Interface:
-![Chat Interface](/demo/chat-success.png)
-
 ### Base Layout:
 ![Base Layout](/demo/base.png)
+
+### Chat Interface:
+![Chat Interface](/demo/chat.png)
+

@@ -1,0 +1,57 @@
+/* Toolbar-specific styles */
+header {
+    transition: all 0.3s ease;
+}
+
+header.scrolled {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background: linear-gradient(to right, rgba(79, 70, 229, 0.95), rgba(67, 56, 202, 0.95));
+    backdrop-filter: blur(5px);
+}
+
+.logo {
+    height: 2rem;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+header:hover .logo {
+    transform: scale(1.05);
+}
+
+.user-avatar {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    header .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    header .font-bold.text-xl {
+        font-size: 1.1rem;
+    }
+}
+
+/* Add subtle animation for dropdown menus */
+.dropdown-content {
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+}
+
+.dropdown:hover .dropdown-content {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
