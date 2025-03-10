@@ -4,7 +4,7 @@ A Django-powered web application that enables real-time chat with a Generative A
 
 ## Features
 
-- Real-time chat with an LLM (Language Learning Model)
+- Real-time chat with an LLM
 - Secure API key handling with environment variables
 - SQLite3 as the default database (easy to switch in production)
 - Clear, responsive web interface
