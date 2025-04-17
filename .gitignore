@@ -1,7 +1,7 @@
 # Bỏ qua file database SQLite
 db.sqlite3
 
-# Bỏ qua file môi trường
+# Bỏ qua file chứa API KEY
 chat_app/.env
 
 # Bỏ qua file cache, migration, và file tạm Django
